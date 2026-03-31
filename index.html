@@ -109,11 +109,11 @@
         
         <div class="direction-area-row">
             <div class="form-group">
-                <label>玻璃行數（A）</label>
+                <label>玻璃行數（直行）</label>
                 <input type="number" id="gridCols" min="1" value="6" oninput="renderGrid()">
             </div>
             <div class="form-group">
-                <label>層數（B）</label>
+                <label>層數（橫行）</label>
                 <input type="number" id="gridRows" min="1" value="1" oninput="renderGrid()">
             </div>
             <div class="form-group">
@@ -122,13 +122,16 @@
             </div>
         </div>
 
+        <!-- 該次清洗範圍：可多組新增、直行橫行並列 -->
         <div class="form-group">
-            <label>清洗範圍（由第 ? 行至第 ? 行）</label>
-            <div class="range-inputs">
-                <span>由</span>
-                <input type="number" id="rangeStart" min="1" value="1" oninput="renderGrid()">
-                <span>至</span>
-                <input type="number" id="rangeEnd" min="1" value="6" oninput="renderGrid()">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">該次清洗範圍</label>
+                <button type="button" class="btn btn-sm btn-primary" onclick="addRangeGroup()">+ 新增範圍</button>
+            </div>
+
+            <!-- 多組範圍容器 -->
+            <div id="rangeGroupsContainer" style="margin-top:10px;">
+                <!-- 動態生成範圍組 -->
             </div>
         </div>
 
@@ -293,7 +296,7 @@
                     <span>:</span>
                     <select class="min-end">
                         <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
-                        <option value="20">20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+                        <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
                         <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
                     </select>
                     <select class="ampm-end">
@@ -386,6 +389,7 @@ function closeWorktimeModal() { document.getElementById('worktimeModal').style.d
 function openChartModal() {
     document.getElementById('chartModal').style.display = 'flex';
     document.getElementById('streetCode').value = '';
+    resetRangeGroups();
     renderGrid();
 }
 function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; }
@@ -393,9 +397,9 @@ function closeChartModal() { document.getElementById('chartModal').style.display
 // 數字補零
 function padNumber(num) { return num.toString().padStart(2, '0'); }
 
-// 渲染圖表
+// 渲染圖表：多組範圍全部變綠
 function renderFullGrid(gridData) {
-    const { cols, rows, start, end, streetCode = '' } = gridData;
+    const { cols, rows, ranges, streetCode = '' } = gridData;
     const container = document.createElement('div');
     container.className = 'grid-canvas';
     
@@ -423,7 +427,19 @@ function renderFullGrid(gridData) {
         for (let c = 1; c <= cols; c++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
-            if (c >= start && c <= end) cell.classList.add('filled');
+            
+            // 任一組範圍符合就變綠
+            let isFilled = false;
+            if (ranges && ranges.length > 0) {
+                ranges.forEach(g => {
+                    const cs = +g.colStart || 1;
+                    const ce = +g.colEnd || cols;
+                    const rs = +g.rowStart || 1;
+                    const re = +g.rowEnd || rows;
+                    if (c >= cs && c <= ce && r >= rs && r <= re) isFilled = true;
+                });
+            }
+            if (isFilled) cell.classList.add('filled');
             rowDiv.appendChild(cell);
         }
         container.appendChild(rowDiv);
@@ -431,17 +447,82 @@ function renderFullGrid(gridData) {
     return container;
 }
 
+// 讀取所有範圍組
 function renderGrid() {
     const cols = +document.getElementById('gridCols').value || 6;
     const rows = +document.getElementById('gridRows').value || 1;
-    const start = +document.getElementById('rangeStart').value || 1;
-    const end = +document.getElementById('rangeEnd').value || cols;
     const streetCode = document.getElementById('streetCode').value.trim();
+
+    const ranges = [];
+    document.querySelectorAll('.range-group').forEach(g => {
+        const colStart = +g.querySelector('.colStart').value || 1;
+        const colEnd = +g.querySelector('.colEnd').value || cols;
+        const rowStart = +g.querySelector('.rowStart').value || 1;
+        const rowEnd = +g.querySelector('.rowEnd').value || rows;
+        ranges.push({ colStart, colEnd, rowStart, rowEnd });
+    });
 
     const container = document.getElementById('previewGrid');
     container.innerHTML = '';
-    currentGridData = { cols, rows, start, end, streetCode };
+    currentGridData = { cols, rows, ranges, streetCode };
     container.appendChild(renderFullGrid(currentGridData));
+}
+
+// 新增一組範圍
+function addRangeGroup() {
+    const container = document.getElementById('rangeGroupsContainer');
+    const cols = +document.getElementById('gridCols').value || 6;
+    const rows = +document.getElementById('gridRows').value || 1;
+
+    const div = document.createElement('div');
+    div.className = 'range-group';
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.gap = '10px';
+    div.style.marginBottom = '8px';
+    div.style.paddingBottom = '8px';
+    div.style.borderBottom = '1px dashed #eee';
+
+    div.innerHTML = `
+        <div style="flex:1;">
+            <label style="font-size:0.9em;">直行</label>
+            <div class="range-inputs">
+                <span>由</span>
+                <input type="number" class="colStart" min="1" value="1" oninput="renderGrid()">
+                <span>至</span>
+                <input type="number" class="colEnd" min="1" value="${cols}" oninput="renderGrid()">
+            </div>
+        </div>
+        <div style="flex:1;">
+            <label style="font-size:0.9em;">橫行</label>
+            <div class="range-inputs">
+                <span>由</span>
+                <input type="number" class="rowStart" min="1" value="1" oninput="renderGrid()">
+                <span>至</span>
+                <input type="number" class="rowEnd" min="1" value="${rows}" oninput="renderGrid()">
+            </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeRangeGroup(this)">−</button>
+    `;
+    container.appendChild(div);
+    renderGrid();
+}
+
+// 刪除一組範圍
+function removeRangeGroup(btn) {
+    const groups = document.querySelectorAll('.range-group');
+    if (groups.length <= 1) {
+        alert('至少保留一組範圍');
+        return;
+    }
+    btn.parentElement.remove();
+    renderGrid();
+}
+
+// 重置範圍
+function resetRangeGroups() {
+    document.getElementById('rangeGroupsContainer').innerHTML = '';
+    addRangeGroup();
 }
 
 function saveGridChart() {
@@ -722,7 +803,6 @@ function filterRecords() {
         const streetName = getStreetName(r);
         const rowText = `${r.date} ${streetName} ${r.timeSlot} ${r.cleanScope} ${r.lineCount} ${r.cleanArea} ${r.waterUsage} ${r.cleaningAgent} ${r.operator} ${r.staff} ${r.remark}`.toLowerCase();
         
-        // 修復：篩選條件錯誤
         if (f && !rowText.includes(f)) return;
         
         const gridStr = r.gridData ? encodeURIComponent(JSON.stringify(r.gridData)) : '';
@@ -790,7 +870,6 @@ async function addCleaningRecord() {
     cleaningRecords = allProjects[currentProjectId].records;
     localStorage.setItem('allProjects', JSON.stringify(allProjects));
 
-    // 清空表單
     document.querySelectorAll('#mainContent input, #mainContent textarea').forEach(i => i.value = '');
     document.getElementById('savedGridChart').innerHTML = '';
     document.getElementById('savedGridChart').style.display = 'none';
@@ -843,7 +922,7 @@ function render() {
     initChart(total, done);
 }
 
-// 圓餅圖（修復恢復）
+// 圓餅圖
 function initChart(total, done) {
     const ctx = document.getElementById('completionChart').getContext('2d');
     if (completionChart) completionChart.destroy();
