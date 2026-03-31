@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>清洗進度記錄表</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<!-- 備註彈窗（含圖表+圖片） -->
+<!-- 備註彈窗 -->
 <div class="modal-overlay remark-modal" id="remarkModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -151,7 +151,7 @@
             <span id="current-project">項目：未設定</span>｜
             <span id="total-area">總面積：0 m²</span>｜
             <span id="overall-completion">完成率：0%</span><br>
-            <span id="project-date-info" style="margin-top:5px;display:inline-block;"></span>
+            <span id="project-date-info"></span>
         </div>
         
         <div class="sync-buttons">
@@ -167,7 +167,7 @@
             <h2><i class="fas fa-folder-open"></i> 工程管理</h2>
             <input type="text" class="filter-input" id="projectFilter" placeholder="🔍 搜尋/篩選工程..." oninput="filterProjects()">
         </div>
-        <div style="display:flex; gap:10px; justify-content:flex-start;">
+        <div style="display:flex; gap:10px;">
             <button class="btn btn-primary" onclick="openEditProjectModal()">編輯設定</button>
             <button class="btn btn-primary" onclick="openNewProjectModal()">新增工程</button>
             <button class="btn btn-danger" onclick="deleteCurrentProject()">刪除工程</button>
@@ -240,7 +240,10 @@
         <div class="card-header">
             <h2><i class="fas fa-plus-circle"></i> 新增記錄</h2>
         </div>
-        <div class="form-group"><label>日期</label><input type="date" id="recordDate"></div>
+        <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="recordDate">
+        </div>
         
         <div class="direction-area-row">
             <div class="form-group">
@@ -290,7 +293,7 @@
                     <span>:</span>
                     <select class="min-end">
                         <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
-                        <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+                        <option value="20">20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
                         <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
                     </select>
                     <select class="ampm-end">
@@ -299,52 +302,27 @@
                     <button type="button" class="btn btn-sm btn-danger" onclick="removeTimePair(this)">刪除</button>
                 </div>
             </div>
-            <button type="button" class="btn btn-sm btn-primary" onclick="addTimePair()" style="margin-top:6px;">+ 新增時間段</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="addTimePair()">+ 新增時間段</button>
         </div>
 
-        <!-- 清洗範圍、行數、清洗面積 同一行 -->
         <div class="direction-area-row">
-            <div class="form-group">
-                <label>清洗範圍</label>
-                <input type="text" id="cleanScope" placeholder="例如：人行道、車道、廣場">
-            </div>
-            <div class="form-group">
-                <label>行數</label>
-                <input type="number" id="lineCount" placeholder="輸入行數">
-            </div>
-            <div class="form-group">
-                <label>清洗面積 (m²)</label>
-                <input type="number" id="cleanArea" placeholder="可留空或輸入0">
-            </div>
+            <div class="form-group"><label>清洗範圍</label><input type="text" id="cleanScope"></div>
+            <div class="form-group"><label>行數</label><input type="number" id="lineCount"></div>
+            <div class="form-group"><label>清洗面積 (m²)</label><input type="number" id="cleanArea"></div>
         </div>
 
-        <!-- 用水量、清潔劑 同一行 -->
         <div class="direction-area-row">
-            <div class="form-group">
-                <label>用水量 (ml)</label>
-                <input type="number" id="waterUsage">
-            </div>
-            <div class="form-group">
-                <label>清潔劑 (ml)</label>
-                <input type="number" id="cleaningAgent">
-            </div>
+            <div class="form-group"><label>用水量 (ml)</label><input type="number" id="waterUsage"></div>
+            <div class="form-group"><label>清潔劑 (ml)</label><input type="number" id="cleaningAgent"></div>
         </div>
 
-        <!-- 操作員、負責人 同一行 -->
         <div class="direction-area-row">
-            <div class="form-group">
-                <label>操作員</label>
-                <input type="text" id="operator" placeholder="輸入操作員">
-            </div>
-            <div class="form-group">
-                <label>負責人</label>
-                <input type="text" id="cleaningStaff" placeholder="輸入負責人">
-            </div>
+            <div class="form-group"><label>操作員</label><input type="text" id="operator"></div>
+            <div class="form-group"><label>負責人</label><input type="text" id="cleaningStaff"></div>
         </div>
 
-        <!-- 示意圖表 + 示例圖 -->
         <div class="form-group">
-            <button class="btn btn-success" onclick="openChartModal()" style="margin-bottom:10px;">
+            <button class="btn btn-success" onclick="openChartModal()">
                 <i class="fas fa-th"></i> 加入示意圖表
             </button>
             <div id="savedGridChart" class="saved-chart" style="display:none;"></div>
@@ -359,664 +337,568 @@
 </div>
 
 <script>
-    let allProjects = JSON.parse(localStorage.getItem('allProjects')) || {};
-    let currentProjectId = localStorage.getItem('currentProjectId') || null;
-    let cleaningRecords = [], projectSettings = {}, completionChart;
-    let isEditMode = false;
-    let projectSortAsc = true, recordSortAsc = true;
-    let lastProjectSortCol = 0, lastRecordSortCol = 0;
-    let currentGridData = null;
+let allProjects = JSON.parse(localStorage.getItem('allProjects')) || {};
+let currentProjectId = localStorage.getItem('currentProjectId') || null;
+let cleaningRecords = [], projectSettings = {}, completionChart;
+let isEditMode = false, projectSortAsc = true, recordSortAsc = true;
+let lastProjectSortCol = 0, lastRecordSortCol = 0, currentGridData = null;
 
-    window.onload = function() {
-        init();
+window.onload = init;
+
+function init() {
+    document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
+    if (currentProjectId) loadProject(currentProjectId);
+}
+
+// 備註彈窗
+function showRemarkModal(text, chartData, imageBase64) {
+    text = decodeURIComponent(text || '');
+    imageBase64 = decodeURIComponent(imageBase64 || '');
+    
+    document.getElementById('remarkContent').innerText = text || '無備註';
+    const chartBox = document.getElementById('remarkChart');
+    chartBox.innerHTML = '';
+    
+    if (chartData) {
+        try { chartData = JSON.parse(decodeURIComponent(chartData)); } catch (e) {}
+        if (chartData) chartBox.appendChild(renderFullGrid(chartData));
+    }
+
+    const img = document.getElementById('remarkImage');
+    if (imageBase64?.startsWith('data:image')) {
+        img.src = imageBase64;
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
+    }
+    document.getElementById('remarkModal').style.display = 'flex';
+}
+function closeRemarkModal() { document.getElementById('remarkModal').style.display = 'none'; }
+
+// 運作時間彈窗
+function showWorktimeModal(text) {
+    document.getElementById('worktimeContent').innerText = text || '無運作時間';
+    document.getElementById('worktimeModal').style.display = 'flex';
+}
+function closeWorktimeModal() { document.getElementById('worktimeModal').style.display = 'none'; }
+
+// 示意圖表彈窗
+function openChartModal() {
+    document.getElementById('chartModal').style.display = 'flex';
+    document.getElementById('streetCode').value = '';
+    renderGrid();
+}
+function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; }
+
+// 數字補零
+function padNumber(num) { return num.toString().padStart(2, '0'); }
+
+// 渲染圖表
+function renderFullGrid(gridData) {
+    const { cols, rows, start, end, streetCode = '' } = gridData;
+    const container = document.createElement('div');
+    container.className = 'grid-canvas';
+    
+    if(cols > 20 || rows > 15) container.classList.add('grid-auto-size');
+
+    const colLabelRow = document.createElement('div');
+    colLabelRow.className = 'col-label-row';
+    for (let c = 1; c <= cols; c++) {
+        const label = document.createElement('div');
+        label.className = 'col-label';
+        label.textContent = streetCode ? `${streetCode}${padNumber(c)}` : c;
+        colLabelRow.appendChild(label);
+    }
+    container.appendChild(colLabelRow);
+
+    for (let r = rows; r >= 1; r--) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'grid-row';
+        
+        const floorLabel = document.createElement('div');
+        floorLabel.className = 'floor-label';
+        floorLabel.textContent = r;
+        rowDiv.appendChild(floorLabel);
+        
+        for (let c = 1; c <= cols; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            if (c >= start && c <= end) cell.classList.add('filled');
+            rowDiv.appendChild(cell);
+        }
+        container.appendChild(rowDiv);
+    }
+    return container;
+}
+
+function renderGrid() {
+    const cols = +document.getElementById('gridCols').value || 6;
+    const rows = +document.getElementById('gridRows').value || 1;
+    const start = +document.getElementById('rangeStart').value || 1;
+    const end = +document.getElementById('rangeEnd').value || cols;
+    const streetCode = document.getElementById('streetCode').value.trim();
+
+    const container = document.getElementById('previewGrid');
+    container.innerHTML = '';
+    currentGridData = { cols, rows, start, end, streetCode };
+    container.appendChild(renderFullGrid(currentGridData));
+}
+
+function saveGridChart() {
+    if (!currentGridData) return;
+    const target = document.getElementById('savedGridChart');
+    target.style.display = 'block';
+    target.innerHTML = '<label>示意圖表：</label>';
+    target.appendChild(renderFullGrid(currentGridData));
+    closeChartModal();
+}
+
+// 時間段
+function addTimePair() {
+    const container = document.getElementById('timePairsContainer');
+    const div = document.createElement('div');
+    div.className = 'time-pair-row';
+    div.innerHTML = `
+        <select class="hour-start">
+            <option value="12">12</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+            <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+        </select>
+        <span>:</span>
+        <select class="min-start">
+            <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
+            <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+            <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
+        </select>
+        <select class="ampm-start">
+            <option value="a.m.">a.m.</option><option value="p.m.">p.m.</option>
+        </select>
+        <span>至</span>
+        <select class="hour-end">
+            <option value="12">12</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+            <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+        </select>
+        <span>:</span>
+        <select class="min-end">
+            <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
+            <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
+            <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
+        </select>
+        <select class="ampm-end">
+            <option value="a.m.">a.m.</option><option value="p.m.">p.m.</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeTimePair(this)">刪除</button>
+    `;
+    container.appendChild(div);
+}
+
+function removeTimePair(btn) {
+    if (document.querySelectorAll('.time-pair-row').length <= 1) {
+        alert('至少保留一個時間段');
+        return;
+    }
+    btn.parentElement.remove();
+}
+
+function collectWorkTime() {
+    const list = [];
+    document.querySelectorAll('.time-pair-row').forEach(p => {
+        const h1 = p.querySelector('.hour-start').value;
+        const m1 = p.querySelector('.min-start').value;
+        const ap1 = p.querySelector('.ampm-start').value;
+        const h2 = p.querySelector('.hour-end').value;
+        const m2 = p.querySelector('.min-end').value;
+        const ap2 = p.querySelector('.ampm-end').value;
+        list.push(`${h1}:${m1} ${ap1} 至 ${h2}:${m2} ${ap2}`);
+    });
+    return list.join('； ');
+}
+
+// 工程管理
+function openNewProjectModal() {
+    isEditMode = false;
+    document.querySelectorAll('#projectModal input').forEach(i => i.value = '');
+    document.getElementById('projectModal').style.display = 'flex';
+}
+
+function openEditProjectModal() {
+    if (!currentProjectId) { alert('請先選擇一個工程！'); return; }
+    isEditMode = true;
+    const pj = allProjects[currentProjectId];
+    const s = pj.settings;
+    
+    document.getElementById('modalProjectName').value = s.name;
+    document.getElementById('modalStartDate').value = s.startDate || '';
+    document.getElementById('modalEndDate').value = s.endDate || '';
+    
+    document.getElementById('modalStreetNorth').value = s.streetNorth || '';
+    document.getElementById('modalStreetEast').value = s.streetEast || '';
+    document.getElementById('modalStreetSouth').value = s.streetSouth || '';
+    document.getElementById('modalStreetWest').value = s.streetWest || '';
+    
+    document.getElementById('modalTotalNorth').value = s.totalAreas.north;
+    document.getElementById('modalTotalEast').value = s.totalAreas.east;
+    document.getElementById('modalTotalSouth').value = s.totalAreas.south;
+    document.getElementById('modalTotalWest').value = s.totalAreas.west;
+    
+    document.getElementById('projectModal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('projectModal').style.display = 'none'; }
+
+function saveProjectFromModal() {
+    const name = document.getElementById('modalProjectName').value.trim();
+    if (!name) { alert('請輸入項目名稱'); return; }
+    
+    const startDate = document.getElementById('modalStartDate').value;
+    const endDate = document.getElementById('modalEndDate').value;
+    const streetNorth = document.getElementById('modalStreetNorth').value.trim();
+    const streetEast = document.getElementById('modalStreetEast').value.trim();
+    const streetSouth = document.getElementById('modalStreetSouth').value.trim();
+    const streetWest = document.getElementById('modalStreetWest').value.trim();
+
+    const totalAreas = {
+        north: +document.getElementById('modalTotalNorth').value || 0,
+        east: +document.getElementById('modalTotalEast').value || 0,
+        south: +document.getElementById('modalTotalSouth').value || 0,
+        west: +document.getElementById('modalTotalWest').value || 0
     };
 
-    function init() {
-        document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
-        if (currentProjectId) loadProject(currentProjectId);
-    }
-
-    // 備註彈窗（文字 + 圖表 + 圖片）
-    function showRemarkModal(text, chartData, imageBase64) {
-        text = decodeURIComponent(text || '');
-        imageBase64 = decodeURIComponent(imageBase64 || '');
-        
-        document.getElementById('remarkContent').innerText = text || '無備註';
-        
-        const chartBox = document.getElementById('remarkChart');
-        chartBox.innerHTML = '';
-        if (chartData) {
-            try { chartData = JSON.parse(decodeURIComponent(chartData)); } catch (e) {}
-            if (chartData) {
-                chartBox.appendChild(renderFullGrid(chartData));
-            }
-        }
-
-        const img = document.getElementById('remarkImage');
-        if (imageBase64 && imageBase64.startsWith('data:image')) {
-            img.src = imageBase64;
-            img.style.display = 'block';
-        } else {
-            img.style.display = 'none';
-        }
-        document.getElementById('remarkModal').style.display = 'flex';
-    }
-    function closeRemarkModal() {
-        document.getElementById('remarkModal').style.display = 'none';
-    }
-
-    // 運作時間彈窗
-    function showWorktimeModal(text) {
-        document.getElementById('worktimeContent').innerText = text || '無運作時間';
-        document.getElementById('worktimeModal').style.display = 'flex';
-    }
-    function closeWorktimeModal() {
-        document.getElementById('worktimeModal').style.display = 'none';
-    }
-
-    // 示意圖表彈窗
-    function openChartModal() {
-        document.getElementById('chartModal').style.display = 'flex';
-        document.getElementById('streetCode').value = '';
-        renderGrid();
-    }
-    function closeChartModal() {
-        document.getElementById('chartModal').style.display = 'none';
-    }
-
-    // 數字補零 (1→01, 10→10)
-    function padNumber(num) {
-        return num.toString().padStart(2, '0');
-    }
-
-    // 渲染完整圖表（含樓層+行數標籤 + 街名代號）
-    function renderFullGrid(gridData) {
-        const { cols, rows, start, end, streetCode = '' } = gridData;
-        const container = document.createElement('div');
-        container.className = 'grid-canvas';
-        
-        // 超大表格自動縮小
-        if(cols > 20 || rows > 15){
-            container.classList.add('grid-auto-size');
-        }
-
-        // 上側行數標籤（一定顯示街名代號 + 數字）
-        const colLabelRow = document.createElement('div');
-        colLabelRow.className = 'col-label-row';
-        for (let c = 1; c <= cols; c++) {
-            const label = document.createElement('div');
-            label.className = 'col-label';
-            const displayText = streetCode ? `${streetCode}${padNumber(c)}` : c.toString();
-            label.textContent = displayText;
-            colLabelRow.appendChild(label);
-        }
-        container.appendChild(colLabelRow);
-
-        // 樓層+格子
-        for (let r = rows; r >= 1; r--) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'grid-row';
-            
-            const floorLabel = document.createElement('div');
-            floorLabel.className = 'floor-label';
-            floorLabel.textContent = r;
-            rowDiv.appendChild(floorLabel);
-            
-            for (let c = 1; c <= cols; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                if (c >= start && c <= end) {
-                    cell.classList.add('filled');
-                }
-                rowDiv.appendChild(cell);
-            }
-            container.appendChild(rowDiv);
-        }
-        return container;
-    }
-
-    // 預覽圖表
-    function renderGrid() {
-        const cols = parseInt(document.getElementById('gridCols').value) || 6;
-        const rows = parseInt(document.getElementById('gridRows').value) || 1;
-        const start = parseInt(document.getElementById('rangeStart').value) || 1;
-        const end = parseInt(document.getElementById('rangeEnd').value) || cols;
-        const streetCode = document.getElementById('streetCode').value.trim();
-
-        const container = document.getElementById('previewGrid');
-        container.innerHTML = '';
-        
-        currentGridData = { cols, rows, start, end, streetCode };
-        container.appendChild(renderFullGrid(currentGridData));
-    }
-
-    // 儲存圖表到介面
-    function saveGridChart() {
-        if (!currentGridData) return;
-        const target = document.getElementById('savedGridChart');
-        target.style.display = 'block';
-        target.innerHTML = `<label>示意圖表：</label>`;
-        target.appendChild(renderFullGrid(currentGridData));
-        closeChartModal();
-    }
-
-    // 新增運作時間組
-    function addTimePair() {
-        const container = document.getElementById('timePairsContainer');
-        const div = document.createElement('div');
-        div.className = 'time-pair-row';
-        div.innerHTML = `
-            <select class="hour-start">
-                <option value="12">12</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
-            </select>
-            <span>:</span>
-            <select class="min-start">
-                <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
-                <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
-                <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
-            </select>
-            <select class="ampm-start">
-                <option value="a.m.">a.m.</option><option value="p.m.">p.m.</option>
-            </select>
-            <span>至</span>
-            <select class="hour-end">
-                <option value="12">12</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
-            </select>
-            <span>:</span>
-            <select class="min-end">
-                <option value="00">00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option>
-                <option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option>
-                <option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option>
-            </select>
-            <select class="ampm-end">
-                <option value="a.m.">a.m.</option><option value="p.m.">p.m.</option>
-            </select>
-            <button type="button" class="btn btn-sm btn-danger" onclick="removeTimePair(this)">刪除</button>
-        `;
-        container.appendChild(div);
-    }
-
-    // 刪除時間段
-    function removeTimePair(btn) {
-        const rows = document.querySelectorAll('.time-pair-row');
-        if (rows.length <= 1) {
-            alert('至少保留一個時間段');
-            return;
-        }
-        btn.parentElement.remove();
-    }
-
-    // 收集所有運作時間
-    function collectWorkTime() {
-        const pairs = document.querySelectorAll('.time-pair-row');
-        const list = [];
-        pairs.forEach(p => {
-            const h1 = p.querySelector('.hour-start').value;
-            const m1 = p.querySelector('.min-start').value;
-            const ap1 = p.querySelector('.ampm-start').value;
-            const h2 = p.querySelector('.hour-end').value;
-            const m2 = p.querySelector('.min-end').value;
-            const ap2 = p.querySelector('.ampm-end').value;
-            list.push(`${h1}:${m1} ${ap1} 至 ${h2}:${m2} ${ap2}`);
-        });
-        return list.join('； ');
-    }
-
-    // 工程彈窗
-    function openNewProjectModal() {
-        isEditMode = false;
-        document.getElementById('modalProjectName').value = '';
-        document.getElementById('modalStartDate').value = '';
-        document.getElementById('modalEndDate').value = '';
-        
-        document.getElementById('modalStreetNorth').value = '';
-        document.getElementById('modalStreetEast').value = '';
-        document.getElementById('modalStreetSouth').value = '';
-        document.getElementById('modalStreetWest').value = '';
-        
-        document.getElementById('modalTotalNorth').value = 0;
-        document.getElementById('modalTotalEast').value = 0;
-        document.getElementById('modalTotalSouth').value = 0;
-        document.getElementById('modalTotalWest').value = 0;
-        
-        document.getElementById('projectModal').style.display = 'flex';
-    }
-
-    function openEditProjectModal() {
-        if (!currentProjectId) { alert('請先選擇一個工程！'); return; }
-        isEditMode = true;
+    if (isEditMode) {
         const pj = allProjects[currentProjectId];
-        const s = pj.settings;
-        
-        document.getElementById('modalProjectName').value = s.name;
-        document.getElementById('modalStartDate').value = s.startDate || '';
-        document.getElementById('modalEndDate').value = s.endDate || '';
-        
-        document.getElementById('modalStreetNorth').value = s.streetNorth || '';
-        document.getElementById('modalStreetEast').value = s.streetEast || '';
-        document.getElementById('modalStreetSouth').value = s.streetSouth || '';
-        document.getElementById('modalStreetWest').value = s.streetWest || '';
-        
-        document.getElementById('modalTotalNorth').value = s.totalAreas.north;
-        document.getElementById('modalTotalEast').value = s.totalAreas.east;
-        document.getElementById('modalTotalSouth').value = s.totalAreas.south;
-        document.getElementById('modalTotalWest').value = s.totalAreas.west;
-        
-        document.getElementById('projectModal').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('projectModal').style.display = 'none';
-    }
-
-    // 儲存工程
-    function saveProjectFromModal() {
-        const name = document.getElementById('modalProjectName').value.trim();
-        if (!name) { alert('請輸入項目名稱'); return; }
-        
-        const startDate = document.getElementById('modalStartDate').value;
-        const endDate = document.getElementById('modalEndDate').value;
-
-        const streetNorth = document.getElementById('modalStreetNorth').value.trim();
-        const streetEast = document.getElementById('modalStreetEast').value.trim();
-        const streetSouth = document.getElementById('modalStreetSouth').value.trim();
-        const streetWest = document.getElementById('modalStreetWest').value.trim();
-
-        const totalAreas = {
-            north: Number(document.getElementById('modalTotalNorth').value) || 0,
-            east: Number(document.getElementById('modalTotalEast').value) || 0,
-            south: Number(document.getElementById('modalTotalSouth').value) || 0,
-            west: Number(document.getElementById('modalTotalWest').value) || 0
+        pj.settings = { name, startDate, endDate, streetNorth, streetEast, streetSouth, streetWest, totalAreas };
+    } else {
+        const id = Date.now().toString();
+        allProjects[id] = { 
+            name, 
+            settings: { name, startDate, endDate, streetNorth, streetEast, streetSouth, streetWest, totalAreas }, 
+            records: [] 
         };
-
-        if (isEditMode) {
-            let pj = allProjects[currentProjectId];
-            pj.settings.name = name;
-            pj.settings.startDate = startDate;
-            pj.settings.endDate = endDate;
-            pj.settings.streetNorth = streetNorth;
-            pj.settings.streetEast = streetEast;
-            pj.settings.streetSouth = streetSouth;
-            pj.settings.streetWest = streetWest;
-            pj.settings.totalAreas = totalAreas;
-            localStorage.setItem('allProjects', JSON.stringify(allProjects));
-            loadProject(currentProjectId);
-        } else {
-            const id = Date.now().toString();
-            allProjects[id] = { 
-                name, 
-                settings: { 
-                    name, startDate, endDate,
-                    streetNorth, streetEast, streetSouth, streetWest,
-                    totalAreas
-                }, 
-                records: [] 
-            };
-            localStorage.setItem('allProjects', JSON.stringify(allProjects));
-            currentProjectId = id;
-            localStorage.setItem('currentProjectId', id);
-        }
-        closeModal();
-        render();
-        alert('儲存成功');
-    }
-
-    // 切換工程
-    function switchProjectId(id) {
         currentProjectId = id;
         localStorage.setItem('currentProjectId', id);
-        loadProject(id);
     }
+    
+    localStorage.setItem('allProjects', JSON.stringify(allProjects));
+    closeModal();
+    loadProject(currentProjectId);
+    alert('儲存成功');
+}
 
-    function loadProject(id) {
-        if (!id || !allProjects[id]) return;
-        const pj = allProjects[id];
-        projectSettings = pj.settings;
-        cleaningRecords = pj.records;
-        render();
-    }
+function switchProjectId(id) {
+    currentProjectId = id;
+    localStorage.setItem('currentProjectId', id);
+    loadProject(id);
+}
 
-    // 刪除工程
-    function deleteCurrentProject() {
-        if (!currentProjectId) return;
-        if(!confirm('確定要刪除此工程嗎？所有記錄將一併刪除！')) return;
-        delete allProjects[currentProjectId];
-        currentProjectId = null;
-        localStorage.setItem('allProjects', JSON.stringify(allProjects));
-        render();
-    }
+function loadProject(id) {
+    if (!allProjects[id]) return;
+    const pj = allProjects[id];
+    projectSettings = pj.settings;
+    cleaningRecords = pj.records;
+    render();
+}
 
-    // 工程列表排序
-    function sortProjects(col) {
-        if (lastProjectSortCol === col) projectSortAsc = !projectSortAsc;
-        else { projectSortAsc = true; lastProjectSortCol = col; }
-        
-        let projectList = Object.entries(allProjects).map(([id, data]) => ({ id, ...data }));
-        
-        projectList.sort((a, b) => {
-            let valA, valB;
-            switch(col) {
-                case 0: valA=a.name; valB=b.name; break;
-                case 1: valA=a.settings.startDate; valB=b.settings.startDate; break;
-                case 2: valA=a.settings.endDate; valB=b.settings.endDate; break;
-                case 3: valA=a.records.length; valB=b.records.length; break;
-                case 4: valA=a.settings.totalAreas.north; valB=b.settings.totalAreas.north; break;
-                case 5: valA=a.settings.totalAreas.east; valB=b.settings.totalAreas.east; break;
-                case 6: valA=a.settings.totalAreas.south; valB=b.settings.totalAreas.south; break;
-                case 7: valA=a.settings.totalAreas.west; valB=b.settings.totalAreas.west; break;
-                case 8: valA=Object.values(a.settings.totalAreas).reduce((t,n)=>t+n,0); valB=Object.values(b.settings.totalAreas).reduce((t,n)=>t+n,0); break;
-                case 9: valA=(a.records.reduce((s,r)=>s+r.cleanArea,0)/Object.values(a.settings.totalAreas).reduce((t,n)=>t+n,0))*100||0;
-                        valB=(b.records.reduce((s,r)=>s+r.cleanArea,0)/Object.values(b.settings.totalAreas).reduce((t,n)=>t+n,0))*100||0; break;
-                default: return 0;
-            }
-            if (valA < valB) return projectSortAsc ? -1 : 1;
-            if (valA > valB) return projectSortAsc ? 1 : -1;
-            return 0;
-        });
-        
-        const temp = {};
-        projectList.forEach(p => temp[p.id] = p);
-        allProjects = temp;
-        renderProjectTable();
-    }
+function deleteCurrentProject() {
+    if (!currentProjectId || !confirm('確定要刪除此工程嗎？所有記錄將一併刪除！')) return;
+    delete allProjects[currentProjectId];
+    currentProjectId = null;
+    localStorage.setItem('allProjects', JSON.stringify(allProjects));
+    render();
+}
 
-    // 工程篩選
-    function filterProjects() {
-        const f = document.getElementById('projectFilter').value.toLowerCase();
-        renderProjectTable(f);
-    }
-
-    // 工程列表渲染
-    function renderProjectTable(filter = '') {
-        const tbody = document.getElementById('projectTableBody');
-        tbody.innerHTML = '';
-
-        Object.entries(allProjects).forEach(([id, pj]) => {
-            const s = pj.settings;
-            const totalNorth = s.totalAreas.north;
-            const totalEast = s.totalAreas.east;
-            const totalSouth = s.totalAreas.south;
-            const totalWest = s.totalAreas.west;
-            const totalArea = totalNorth + totalEast + totalSouth + totalWest;
-            const doneArea = pj.records.reduce((sum, r) => sum + r.cleanArea, 0);
-            const rate = totalArea > 0 ? ((doneArea / totalArea)*100).toFixed(1) + '%' : '0%';
-
-            const rowText = `${pj.name} ${s.startDate} ${s.endDate} ${totalArea} ${rate}`.toLowerCase();
-            if (filter && !rowText.includes(filter)) return;
-
-            tbody.innerHTML += `
-            <tr class="${id === currentProjectId ? 'active' : ''}" onclick="switchProjectId('${id}')">
-                <td>${pj.name}</td>
-                <td>${s.startDate || '-'}</td>
-                <td>${s.endDate || '-'}</td>
-                <td>${pj.records.length}</td>
-                <td>${totalNorth}</td>
-                <td>${totalEast}</td>
-                <td>${totalSouth}</td>
-                <td>${totalWest}</td>
-                <td>${totalArea}</td>
-                <td>${rate}</td>
-            </tr>`;
-        });
-    }
-
-    // 記錄排序
-    function sortRecords(col) {
-        if (lastRecordSortCol === col) {
-            recordSortAsc = !recordSortAsc;
-        } else {
-            recordSortAsc = true;
-            lastRecordSortCol = col;
+// 排序 & 篩選
+function sortProjects(col) {
+    projectSortAsc = lastProjectSortCol === col ? !projectSortAsc : true;
+    lastProjectSortCol = col;
+    
+    const projectList = Object.entries(allProjects).map(([id, data]) => ({ id, ...data }));
+    
+    projectList.sort((a, b) => {
+        let valA, valB;
+        switch(col) {
+            case 0: valA=a.name; valB=b.name; break;
+            case 1: valA=a.settings.startDate; valB=b.settings.startDate; break;
+            case 2: valA=a.settings.endDate; valB=b.settings.endDate; break;
+            case 3: valA=a.records.length; valB=b.records.length; break;
+            case 4: valA=a.settings.totalAreas.north; valB=b.settings.totalAreas.north; break;
+            case 5: valA=a.settings.totalAreas.east; valB=b.settings.totalAreas.east; break;
+            case 6: valA=a.settings.totalAreas.south; valB=b.settings.totalAreas.south; break;
+            case 7: valA=a.settings.totalAreas.west; valB=b.settings.totalAreas.west; break;
+            case 8: valA=Object.values(a.settings.totalAreas).reduce((t,n)=>t+n,0); valB=Object.values(b.settings.totalAreas).reduce((t,n)=>t+n,0); break;
+            case 9: valA=(a.records.reduce((s,r)=>s+r.cleanArea,0)/Object.values(a.settings.totalAreas).reduce((t,n)=>t+n,0))*100||0;
+                    valB=(b.records.reduce((s,r)=>s+r.cleanArea,0)/Object.values(b.settings.totalAreas).reduce((t,n)=>t+n,0))*100||0; break;
+            default: return 0;
         }
+        return (valA < valB ? -1 : 1) * (projectSortAsc ? 1 : -1);
+    });
+    
+    const temp = {};
+    projectList.forEach(p => temp[p.id] = p);
+    allProjects = temp;
+    renderProjectTable();
+}
 
-        cleaningRecords.sort((a, b) => {
-            let valA, valB;
+function filterProjects() {
+    renderProjectTable(document.getElementById('projectFilter').value.toLowerCase());
+}
 
-            switch (col) {
-                case 0: valA = a.date; valB = b.date; break;
-                case 1:
-                    valA = (a.direction === 'north' ? projectSettings.streetNorth||'北面' :
-                           a.direction === 'east'  ? projectSettings.streetEast||'東面' :
-                           a.direction === 'south' ? projectSettings.streetSouth||'南面' : projectSettings.streetWest||'西面') || '';
-                    valB = (b.direction === 'north' ? projectSettings.streetNorth||'北面' :
-                           b.direction === 'east'  ? projectSettings.streetEast||'東面' :
-                           b.direction === 'south' ? projectSettings.streetSouth||'南面' : projectSettings.streetWest||'西面') || '';
-                    valA = valA.toString().toLowerCase(); valB = valB.toString().toLowerCase(); break;
-                case 2: valA = (a.timeSlot || "").toLowerCase(); valB = (b.timeSlot || "").toLowerCase(); break;
-                case 3: valA = parseFloat(a.cleanArea) || 0; valB = parseFloat(b.cleanArea) || 0; break;
-                case 4: valA = parseFloat(a.cleaningAgent) || 0; valB = parseFloat(b.cleaningAgent) || 0; break;
-                case 5: valA = (a.staff || "").toLowerCase(); valB = (b.staff || "").toLowerCase(); break;
-                case 6: valA = (a.cleanScope || "").toLowerCase(); valB = (b.cleanScope || "").toLowerCase(); break;
-                case 7: valA = parseFloat(a.lineCount) || 0; valB = parseFloat(b.lineCount) || 0; break;
-                case 8: valA = parseFloat(a.waterUsage) || 0; valB = parseFloat(b.waterUsage) || 0; break;
-                case 9: valA = (a.operator || "").toLowerCase(); valB = (b.operator || "").toLowerCase(); break;
-                default: return 0;
-            }
-            if (valA < valB) return recordSortAsc ? -1 : 1;
-            if (valA > valB) return recordSortAsc ? 1 : -1;
-            return 0;
-        });
+function renderProjectTable(filter = '') {
+    const tbody = document.getElementById('projectTableBody');
+    tbody.innerHTML = '';
 
-        if (currentProjectId) {
-            allProjects[currentProjectId].records = cleaningRecords;
-            localStorage.setItem('allProjects', JSON.stringify(allProjects));
+    Object.entries(allProjects).forEach(([id, pj]) => {
+        const s = pj.settings;
+        const totalArea = Object.values(s.totalAreas).reduce((t,n)=>t+n,0);
+        const doneArea = pj.records.reduce((sum, r) => sum + r.cleanArea, 0);
+        const rate = totalArea > 0 ? ((doneArea / totalArea)*100).toFixed(1) + '%' : '0%';
+
+        const rowText = `${pj.name} ${s.startDate} ${s.endDate} ${totalArea} ${rate}`.toLowerCase();
+        if (filter && !rowText.includes(filter)) return;
+
+        tbody.innerHTML += `
+        <tr class="${id === currentProjectId ? 'active' : ''}" onclick="switchProjectId('${id}')">
+            <td>${pj.name}</td>
+            <td>${s.startDate || '-'}</td>
+            <td>${s.endDate || '-'}</td>
+            <td>${pj.records.length}</td>
+            <td>${s.totalAreas.north}</td>
+            <td>${s.totalAreas.east}</td>
+            <td>${s.totalAreas.south}</td>
+            <td>${s.totalAreas.west}</td>
+            <td>${totalArea}</td>
+            <td>${rate}</td>
+        </tr>`;
+    });
+}
+
+// 記錄
+function sortRecords(col) {
+    recordSortAsc = lastRecordSortCol === col ? !recordSortAsc : true;
+    lastRecordSortCol = col;
+
+    cleaningRecords.sort((a, b) => {
+        let valA, valB;
+        switch (col) {
+            case 0: valA = a.date; valB = b.date; break;
+            case 1: valA = getStreetName(a).toLowerCase(); valB = getStreetName(b).toLowerCase(); break;
+            case 2: valA = (a.timeSlot || "").toLowerCase(); valB = (b.timeSlot || "").toLowerCase(); break;
+            case 3: valA = +a.cleanArea || 0; valB = +b.cleanArea || 0; break;
+            case 4: valA = +a.cleaningAgent || 0; valB = +b.cleaningAgent || 0; break;
+            case 5: valA = (a.staff || "").toLowerCase(); valB = (b.staff || "").toLowerCase(); break;
+            case 6: valA = (a.cleanScope || "").toLowerCase(); valB = (b.cleanScope || "").toLowerCase(); break;
+            case 7: valA = +a.lineCount || 0; valB = +b.lineCount || 0; break;
+            case 8: valA = +a.waterUsage || 0; valB = +a.waterUsage || 0; break;
+            case 9: valA = (a.operator || "").toLowerCase(); valB = (b.operator || "").toLowerCase(); break;
+            default: return 0;
         }
-        filterRecords();
-    }
+        return (valA < valB ? -1 : 1) * (recordSortAsc ? 1 : -1);
+    });
 
-    // 記錄篩選功能
-    function filterRecords() {
-        const f = document.getElementById('recordFilter').value.toLowerCase();
-        const body = document.getElementById('recordsTableBody');
-        body.innerHTML = '';
-        
-        if (!projectSettings) return;
-
-        cleaningRecords.forEach((r, index) => {
-            let streetName = "";
-            if (r.direction === 'north') streetName = projectSettings.streetNorth || '北面';
-            if (r.direction === 'east')  streetName = projectSettings.streetEast  || '東面';
-            if (r.direction === 'south') streetName = projectSettings.streetSouth || '南面';
-            if (r.direction === 'west')  streetName = projectSettings.streetWest  || '西面';
-            
-            const rowText = `${r.date} ${streetName} ${r.timeSlot||""} ${r.cleanScope||""} ${r.lineCount||""} ${r.cleanArea} ${r.waterUsage||""} ${r.cleaningAgent} ${r.operator||""} ${r.staff||""} ${r.remark||""}`.toLowerCase();
-            if (f && !rowText.includes(f)) return;
-            
-            const gridStr = r.gridData ? encodeURIComponent(JSON.stringify(r.gridData)) : '';
-            const remarkStr = encodeURIComponent(r.remark || '');
-            const imageStr = encodeURIComponent(r.image || '');
-
-            body.innerHTML += `<tr>
-                <td>${r.date}</td>
-                <td>${streetName}</td>
-                <td>
-                    ${r.timeSlot || '-'}
-                    <button class="btn btn-sm btn-primary" onclick="showWorktimeModal('${r.workTime||''}')" style="margin-left:4px;">
-                        <i class="fas fa-clock"></i>
-                    </button>
-                </td>
-                <td>${r.cleanScope || '-'}</td>
-                <td>${r.lineCount || '-'}</td>
-                <td>${r.cleanArea.toFixed(1)}</td>
-                <td>${r.waterUsage ? r.waterUsage.toFixed(1) : '-'}</td>
-                <td>${r.cleaningAgent.toFixed(1)}</td>
-                <td>${r.operator || '-'}</td>
-                <td>${r.staff || '-'}</td>
-                <td><button class="btn btn-primary btn-sm" onclick="showRemarkModal('${remarkStr}', '${gridStr}', '${imageStr}')">查看</button></td>
-                <td><button class="btn btn-danger btn-sm" onclick="del(${index})">刪</button></td>
-            </tr>`;
-        });
-    }
-
-    // 圖片上傳轉Base64
-    function getImageBase64(fileInput) {
-        return new Promise((resolve) => {
-            const file = fileInput.files[0];
-            if (!file) { resolve(''); return; }
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.readAsDataURL(file);
-        });
-    }
-
-    // 新增記錄（含圖表）
-    async function addCleaningRecord() {
-        if (!currentProjectId || !allProjects[currentProjectId]) {
-            alert("請先點選表格中的工程！");
-            return;
-        }
-
-        const date = document.getElementById('recordDate').value;
-        if (!date) return alert('請選日期');
-        
-        const direction = document.getElementById('direction').value;
-        const timeSlot = document.getElementById('timeSlot').value;
-        const cleanArea = +document.getElementById('cleanArea').value || 0;
-        const workTime = collectWorkTime();
-        
-        const cleanScope = document.getElementById('cleanScope').value.trim();
-        const lineCount = +document.getElementById('lineCount').value || 0;
-        const waterUsage = +document.getElementById('waterUsage').value || 0;
-        const operator = document.getElementById('operator').value.trim();
-        const image = await getImageBase64(document.getElementById('exampleImage'));
-
-        const newRecord = {
-            date, direction, timeSlot, cleanArea, workTime,
-            cleaningAgent: +document.getElementById('cleaningAgent').value || 0,
-            staff: document.getElementById('cleaningStaff').value,
-            remark: document.getElementById('remark').value,
-            cleanScope, lineCount, waterUsage, operator, image,
-            gridData: currentGridData
-        };
-
-        let project = allProjects[currentProjectId];
-        project.records.push(newRecord);
-        cleaningRecords = project.records;
-
-        localStorage.setItem('allProjects', JSON.stringify(allProjects));
-
-        // 清空
-        document.getElementById('cleanScope').value = '';
-        document.getElementById('lineCount').value = '';
-        document.getElementById('cleanArea').value = '';
-        document.getElementById('waterUsage').value = '';
-        document.getElementById('cleaningAgent').value = '';
-        document.getElementById('operator').value = '';
-        document.getElementById('cleaningStaff').value = '';
-        document.getElementById('remark').value = '';
-        document.getElementById('exampleImage').value = '';
-        document.getElementById('savedGridChart').innerHTML = '';
-        document.getElementById('savedGridChart').style.display = 'none';
-        currentGridData = null;
-
-        render();
-        alert('新增記錄成功！');
-    }
-
-    // 刪除記錄
-    function del(index) {
-        if (!currentProjectId) return;
-        cleaningRecords.splice(index, 1);
+    if (currentProjectId) {
         allProjects[currentProjectId].records = cleaningRecords;
         localStorage.setItem('allProjects', JSON.stringify(allProjects));
-        render();
     }
+    filterRecords();
+}
 
-    // 主渲染
-    function render() {
-        renderProjectTable(document.getElementById('projectFilter')?.value.toLowerCase() || '');
-        if (!projectSettings) return;
-        
-        const sel = document.getElementById('direction');
-        sel.innerHTML = `
-            <option value="north">${projectSettings.streetNorth || '北面'}</option>
-            <option value="east">${projectSettings.streetEast || '東面'}</option>
-            <option value="south">${projectSettings.streetSouth || '南面'}</option>
-            <option value="west">${projectSettings.streetWest || '西面'}</option>
-        `;
-
-        const total = (+projectSettings.totalAreas.north + +projectSettings.totalAreas.east +
-                       +projectSettings.totalAreas.south + +projectSettings.totalAreas.west).toFixed(1);
-        const done = cleaningRecords.reduce((s, r) => s + r.cleanArea, 0).toFixed(1);
-        const rate = total > 0 ? ((done / total)*100).toFixed(1) : 0;
-        const agent = cleaningRecords.reduce((s, r) => s + r.cleaningAgent, 0).toFixed(1);
-        
-        document.getElementById('current-project').textContent = `項目：${projectSettings.name||'未設定'}`;
-        document.getElementById('total-area').textContent = `總面積：${total} m²`;
-        document.getElementById('overall-completion').textContent = `完成率：${rate}%`;
-        
-        let dateText = '';
-        if (projectSettings.startDate) dateText += `開始：${projectSettings.startDate}　`;
-        if (projectSettings.endDate) dateText += `完成日期：${projectSettings.endDate}`;
-        document.getElementById('project-date-info').innerText = dateText;
-
-        document.getElementById('completedArea').textContent = done+' m²';
-        document.getElementById('completionRate').textContent = rate+'%';
-        document.getElementById('totalCleaningAgent').textContent = agent;
-        
-        filterRecords();
-        initChart(total, done);
+function getStreetName(record) {
+    switch(record.direction) {
+        case 'north': return projectSettings.streetNorth || '北面';
+        case 'east': return projectSettings.streetEast || '東面';
+        case 'south': return projectSettings.streetSouth || '南面';
+        case 'west': return projectSettings.streetWest || '西面';
+        default: return '';
     }
+}
 
-    // 圓餅圖
-    function initChart(total, done) {
-        const ctx = document.getElementById('completionChart').getContext('2d');
-        if (completionChart) completionChart.destroy();
-        completionChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['已完成', '剩餘'],
-                datasets: [{ data: [done, Math.max(0, total-done)], backgroundColor: ['#2c6eec','#e0e0e0'] }]
-            },
-            options: { cutout: '60%' }
-        });
-    }
+function filterRecords() {
+    const f = document.getElementById('recordFilter').value.toLowerCase();
+    const body = document.getElementById('recordsTableBody');
+    body.innerHTML = '';
+    if (!projectSettings) return;
 
-    // 備份 / 還原
-    async function exportBackup() {
-        const data = JSON.stringify({ allProjects, currentProjectId });
+    cleaningRecords.forEach((r, index) => {
+        const streetName = getStreetName(r);
+        const rowText = `${r.date} ${streetName} ${r.timeSlot} ${r.cleanScope} ${r.lineCount} ${r.cleanArea} ${r.waterUsage} ${r.cleaningAgent} ${r.operator} ${r.staff} ${r.remark}`.toLowerCase();
+        
+        // 修復：篩選條件錯誤
+        if (f && !rowText.includes(f)) return;
+        
+        const gridStr = r.gridData ? encodeURIComponent(JSON.stringify(r.gridData)) : '';
+        const remarkStr = encodeURIComponent(r.remark || '');
+        const imageStr = encodeURIComponent(r.image || '');
 
-        try {
-            const handle = await window.showSaveFilePicker({
-                suggestedName: 'clean-backup.json',
-                types: [{
-                    description: 'JSON file',
-                    accept: { 'application/json': ['.json'] }
-                }]
-            });
+        body.innerHTML += `<tr>
+            <td>${r.date}</td>
+            <td>${streetName}</td>
+            <td>
+                ${r.timeSlot || '-'}
+                <button class="btn btn-sm btn-primary" onclick="showWorktimeModal('${r.workTime||''}')" style="margin-left:4px;">
+                    <i class="fas fa-clock"></i>
+                </button>
+            </td>
+            <td>${r.cleanScope || '-'}</td>
+            <td>${r.lineCount || '-'}</td>
+            <td>${r.cleanArea.toFixed(1)}</td>
+            <td>${r.waterUsage ? r.waterUsage.toFixed(1) : '-'}</td>
+            <td>${r.cleaningAgent.toFixed(1)}</td>
+            <td>${r.operator || '-'}</td>
+            <td>${r.staff || '-'}</td>
+            <td><button class="btn btn-primary btn-sm" onclick="showRemarkModal('${remarkStr}', '${gridStr}', '${imageStr}')">查看</button></td>
+            <td><button class="btn btn-danger btn-sm" onclick="del(${index})">刪</button></td>
+        </tr>`;
+    });
+}
 
-            const writable = await handle.createWritable();
-            await writable.write(data);
-            await writable.close();
-
-            alert('匯出成功！(可自由選資料夾)');
-        } catch (err) {
-            console.log(err);
-            alert('已取消或發生錯誤');
-        }
-    }
-
-    function importBackup(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+// 圖片
+function getImageBase64(fileInput) {
+    return new Promise((resolve) => {
+        const file = fileInput.files[0];
+        if (!file) { resolve(''); return; }
         const reader = new FileReader();
-        reader.onload = ev=>{
-            try{
-                const data = JSON.parse(ev.target.result);
-                allProjects = data.allProjects;
-                currentProjectId = data.currentProjectId;
-                localStorage.setItem('allProjects',JSON.stringify(allProjects));
-                localStorage.setItem('currentProjectId',currentProjectId);
-                init();
-                alert('匯入成功！');
-            }catch(e){alert('檔案錯誤')}
-        };
-        reader.readAsText(file);
+        reader.onload = e => resolve(e.target.result);
+        reader.readAsDataURL(file);
+    });
+}
+
+// 新增記錄
+async function addCleaningRecord() {
+    if (!currentProjectId) { alert("請先點選表格中的工程！"); return; }
+
+    const date = document.getElementById('recordDate').value;
+    if (!date) return alert('請選日期');
+    
+    const newRecord = {
+        date,
+        direction: document.getElementById('direction').value,
+        timeSlot: document.getElementById('timeSlot').value,
+        cleanArea: +document.getElementById('cleanArea').value || 0,
+        workTime: collectWorkTime(),
+        cleaningAgent: +document.getElementById('cleaningAgent').value || 0,
+        staff: document.getElementById('cleaningStaff').value,
+        remark: document.getElementById('remark').value,
+        cleanScope: document.getElementById('cleanScope').value.trim(),
+        lineCount: +document.getElementById('lineCount').value || 0,
+        waterUsage: +document.getElementById('waterUsage').value || 0,
+        operator: document.getElementById('operator').value.trim(),
+        image: await getImageBase64(document.getElementById('exampleImage')),
+        gridData: currentGridData
+    };
+
+    allProjects[currentProjectId].records.push(newRecord);
+    cleaningRecords = allProjects[currentProjectId].records;
+    localStorage.setItem('allProjects', JSON.stringify(allProjects));
+
+    // 清空表單
+    document.querySelectorAll('#mainContent input, #mainContent textarea').forEach(i => i.value = '');
+    document.getElementById('savedGridChart').innerHTML = '';
+    document.getElementById('savedGridChart').style.display = 'none';
+    currentGridData = null;
+    document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
+
+    render();
+    alert('新增記錄成功！');
+}
+
+function del(index) {
+    if (!currentProjectId) return;
+    cleaningRecords.splice(index, 1);
+    allProjects[currentProjectId].records = cleaningRecords;
+    localStorage.setItem('allProjects', JSON.stringify(allProjects));
+    render();
+}
+
+// 主渲染
+function render() {
+    renderProjectTable(document.getElementById('projectFilter')?.value.toLowerCase() || '');
+    if (!projectSettings) return;
+    
+    document.getElementById('direction').innerHTML = `
+        <option value="north">${projectSettings.streetNorth || '北面'}</option>
+        <option value="east">${projectSettings.streetEast || '東面'}</option>
+        <option value="south">${projectSettings.streetSouth || '南面'}</option>
+        <option value="west">${projectSettings.streetWest || '西面'}</option>
+    `;
+
+    const total = Object.values(projectSettings.totalAreas).reduce((t,n)=>+t + +n,0).toFixed(1);
+    const done = cleaningRecords.reduce((s, r) => s + r.cleanArea, 0).toFixed(1);
+    const rate = total > 0 ? ((done / total)*100).toFixed(1) : 0;
+    const agent = cleaningRecords.reduce((s, r) => s + r.cleaningAgent, 0).toFixed(1);
+    
+    document.getElementById('current-project').textContent = `項目：${projectSettings.name}`;
+    document.getElementById('total-area').textContent = `總面積：${total} m²`;
+    document.getElementById('overall-completion').textContent = `完成率：${rate}%`;
+    
+    let dateText = '';
+    if (projectSettings.startDate) dateText += `開始：${projectSettings.startDate}　`;
+    if (projectSettings.endDate) dateText += `完成日期：${projectSettings.endDate}`;
+    document.getElementById('project-date-info').innerText = dateText;
+
+    document.getElementById('completedArea').textContent = done+' m²';
+    document.getElementById('completionRate').textContent = rate+'%';
+    document.getElementById('totalCleaningAgent').textContent = agent;
+    
+    filterRecords();
+    initChart(total, done);
+}
+
+// 圓餅圖（修復恢復）
+function initChart(total, done) {
+    const ctx = document.getElementById('completionChart').getContext('2d');
+    if (completionChart) completionChart.destroy();
+    
+    completionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['已完成', '剩餘'],
+            datasets: [{
+                data: [parseFloat(done), Math.max(0, total - done)],
+                backgroundColor: ['#2c6eec','#e0e0e0']
+            }]
+        },
+        options: { 
+            cutout: '60%',
+            responsive: true,
+            maintainAspectRatio: true
+        }
+    });
+}
+
+// 備份
+async function exportBackup() {
+    const data = JSON.stringify({ allProjects, currentProjectId });
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: 'clean-backup.json',
+            types: [{ accept: { 'application/json': ['.json'] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(data);
+        await writable.close();
+        alert('匯出成功！');
+    } catch (err) {
+        alert('已取消或發生錯誤');
     }
+}
+
+function importBackup(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+        try{
+            const data = JSON.parse(ev.target.result);
+            allProjects = data.allProjects;
+            currentProjectId = data.currentProjectId;
+            localStorage.setItem('allProjects',JSON.stringify(allProjects));
+            localStorage.setItem('currentProjectId',currentProjectId);
+            init();
+            alert('匯入成功！');
+        }catch(e){alert('檔案錯誤')}
+    };
+    reader.readAsText(file);
+}
 </script>
 </body>
 </html>
