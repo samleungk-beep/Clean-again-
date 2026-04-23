@@ -22,11 +22,9 @@
         </div>
         <div class="form-group">
             <label>街道名稱與總面積</label>
-            <div class="area-row">
-                <div><label>北面</label><input type="text" id="modalStreetNorth"><label>面積</label><input type="number" id="modalTotalNorth"></div>
-                <div><label>東面</label><input type="text" id="modalStreetEast"><label>面積</label><input type="number" id="modalTotalEast"></div>
-                <div><label>南面</label><input type="text" id="modalStreetSouth"><label>面積</label><input type="number" id="modalTotalSouth"></div>
-                <div><label>西面</label><input type="text" id="modalStreetWest"><label>面積</label><input type="number" id="modalTotalWest"></div>
+            <button type="button" class="btn btn-sm btn-primary" onclick="addDirectionItem()">+ 新增方向</button>
+            <div id="directionsContainer" style="margin-top:10px;">
+                <!-- 動態方向項 -->
             </div>
         </div>
         <div class="modal-footer"><button class="btn btn-primary" onclick="saveProjectFromModal()">儲存設定</button></div>
