@@ -128,6 +128,12 @@ function closeWorktimeModal() { document.getElementById('worktimeModal').style.d
 function openNewProjectModal() {
     isEditMode = false;
     document.querySelectorAll('#projectModal input').forEach(i => i.value = '');
+    // 清空方向容器
+    document.getElementById('directionsContainer').innerHTML = '';
+    // 默认添加4个方向项，和原来的习惯一致，用户可以自行删改
+    for(let i=0; i<4; i++) {
+        addDirectionItem();
+    }
     document.getElementById('projectModal').style.display = 'flex';
 }
 function openEditProjectModal() {
@@ -137,10 +143,31 @@ function openEditProjectModal() {
     document.getElementById('modalProjectName').value = allProjects[currentProjectId].name;
     document.getElementById('modalStartDate').value = s.startDate || '';
     document.getElementById('modalEndDate').value = s.endDate || '';
-    ['North','East','South','West'].forEach(d => {
-        document.getElementById('modalStreet'+d).value = s['street'+d] || '';
-        document.getElementById('modalTotal'+d).value = s.totalAreas[d.toLowerCase()] || 0;
-    });
+    
+    // 清空方向容器
+    document.getElementById('directionsContainer').innerHTML = '';
+    
+    // 处理新格式数据：有directions数组
+    if(s.directions && s.directions.length > 0) {
+        s.directions.forEach(dir => {
+            addDirectionItem(dir);
+        });
+    } else {
+        // 兼容旧格式数据：原来的四个方向
+        const oldDirs = ['North','East','South','West'];
+        const oldNames = ['北面','東面','南面','西面'];
+        oldDirs.forEach((d, idx) => {
+            const dirData = {
+                name: s['street'+d] || oldNames[idx],
+                area: s.totalAreas?.[d.toLowerCase()] || 0,
+                cols: 6,
+                rows:1,
+                streetCode: ''
+            };
+            addDirectionItem(dirData);
+        });
+    }
+    
     document.getElementById('projectModal').style.display = 'flex';
 }
 function closeModal() { document.getElementById('projectModal').style.display = 'none'; }
@@ -148,21 +175,45 @@ function saveProjectFromModal() {
     const name = document.getElementById('modalProjectName').value.trim();
     if (!name) return alert('請輸入項目名稱');
     
+    // 收集所有方向項的數據
+    const directions = [];
+    document.querySelectorAll('.direction-item').forEach(item => {
+        const dirName = item.querySelector('.dir-name').value.trim();
+        const dirArea = parseFloat(item.querySelector('.dir-area').value) || 0;
+        const dirCols = parseInt(item.querySelector('.dir-cols').value) || 6;
+        const dirRows = parseInt(item.querySelector('.dir-rows').value) || 1;
+        const dirCode = item.querySelector('.dir-code').value.trim();
+        const gridData = JSON.parse(item.dataset.gridData || '{}');
+        
+        directions.push({
+            name: dirName,
+            area: dirArea,
+            cols: dirCols,
+            rows: dirRows,
+            streetCode: dirCode,
+            gridData: gridData
+        });
+    });
+    
     const settings = {
         name,
         startDate: document.getElementById('modalStartDate').value,
         endDate: document.getElementById('modalEndDate').value,
-        streetNorth: document.getElementById('modalStreetNorth').value,
-        streetEast: document.getElementById('modalStreetEast').value,
-        streetSouth: document.getElementById('modalStreetSouth').value,
-        streetWest: document.getElementById('modalStreetWest').value,
+        // 保留旧的字段，兼容旧数据
+        streetNorth: directions[0]?.name || '',
+        streetEast: directions[1]?.name || '',
+        streetSouth: directions[2]?.name || '',
+        streetWest: directions[3]?.name || '',
         totalAreas: {
-            north: parseFloat(document.getElementById('modalTotalNorth').value) || 0,
-            east: parseFloat(document.getElementById('modalTotalEast').value) || 0,
-            south: parseFloat(document.getElementById('modalTotalSouth').value) || 0,
-            west: parseFloat(document.getElementById('modalTotalWest').value) || 0
-        }
+            north: directions[0]?.area || 0,
+            east: directions[1]?.area || 0,
+            south: directions[2]?.area || 0,
+            west: directions[3]?.area || 0
+        },
+        // 新的字段
+        directions: directions
     };
+    
     if (isEditMode) {
         allProjects[currentProjectId].settings = settings;
         allProjects[currentProjectId].name = name;
@@ -202,7 +253,12 @@ function renderProjectTable(filter = '') {
     
     Object.entries(allProjects).forEach(([id, pj]) => {
         const s = pj.settings;
-        const totalArea = Object.values(s.totalAreas).reduce((t,n)=>t+(parseFloat(n)||0),0);
+        let totalArea;
+        if(s.directions && s.directions.length >0) {
+            totalArea = s.directions.reduce((t, d)=>t+(parseFloat(d.area)||0),0);
+        } else {
+            totalArea = Object.values(s.totalAreas).reduce((t,n)=>t+(parseFloat(n)||0),0);
+        }
         const doneArea = pj.records.reduce((sum, r) => sum + (parseFloat(r.cleanArea)||0), 0);
         const rate = totalArea > 0 ? ((doneArea / totalArea)*100).toFixed(1) + '%' : '0%';
         if (filter && !`${pj.name} ${s.startDate}`.toLowerCase().includes(filter)) return;
@@ -255,6 +311,25 @@ function openRecordModal() {
     document.getElementById('recordModal').style.display = 'flex';
     // 重置日期為今天
     document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
+    // 初始化方向下拉框
+    const directionSelect = document.getElementById('direction');
+    directionSelect.innerHTML = '';
+    if(projectSettings.directions && projectSettings.directions.length>0) {
+        projectSettings.directions.forEach(dir => {
+            const opt = document.createElement('option');
+            opt.value = dir.name;
+            opt.innerText = dir.name;
+            directionSelect.appendChild(opt);
+        });
+    } else {
+        // 兼容旧格式
+        ['North','East','South','West'].forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.toLowerCase();
+            opt.innerText = projectSettings['street'+d] || d;
+            directionSelect.appendChild(opt);
+        });
+    }
     // 初始化示意圖預覽
     renderGrid();
 }
@@ -473,7 +548,12 @@ function renderSavedGridChart() {
 // ==========================================
 function renderAllStatsAndRecords() {
     const s = projectSettings;
-    const totalArea = Object.values(s.totalAreas).reduce((t,n)=>t+(parseFloat(n)||0),0);
+    let totalArea;
+    if(s.directions && s.directions.length>0) {
+        totalArea = s.directions.reduce((t, d)=>t+(parseFloat(d.area)||0),0);
+    } else {
+        totalArea = Object.values(s.totalAreas).reduce((t,n)=>t+(parseFloat(n)||0),0);
+    }
     const doneArea = cleaningRecords.reduce((sum, r) => sum + (parseFloat(r.cleanArea)||0), 0);
     const rate = totalArea > 0 ? ((doneArea / totalArea)*100).toFixed(1) : 0;
     // 更新頂部資訊與卡片
@@ -823,4 +903,166 @@ function importBackup(event) {
         }
     };
     reader.readAsText(file);
+}
+// ==========================================
+// 動態方向項功能 (新增工程用)
+// ==========================================
+function addDirectionItem(directionData = null) {
+    const container = document.getElementById('directionsContainer');
+    if(!container) return; // 非工程頁面不執行
+    const item = document.createElement('div');
+    item.className = 'direction-item';
+    item.style.border = '1px solid #eee';
+    item.style.padding = '15px';
+    item.style.borderRadius = '8px';
+    item.style.marginBottom = '10px';
+    
+    // 如果有传入数据，就填充，否则默认值
+    const name = directionData?.name || '';
+    const area = directionData?.area || '';
+    const cols = directionData?.cols || 6;
+    const rows = directionData?.rows || 1;
+    const code = directionData?.streetCode || '';
+    
+    item.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span>方向設定</span>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeDirectionItem(this)">刪除</button>
+        </div>
+        <div class="direction-area-row">
+            <div class="form-group" style="flex:1;">
+                <label>名稱</label>
+                <input type="text" class="dir-name" placeholder="例如：北面" value="${name}">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>面積(m²)</label>
+                <input type="number" class="dir-area" placeholder="0" value="${area}" oninput="updateTotalArea()">
+            </div>
+        </div>
+        <div class="direction-area-row">
+            <div class="form-group" style="flex:1;">
+                <label>直行</label>
+                <input type="number" class="dir-cols" value="${cols}" oninput="renderDirectionGrid(this)">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>橫行</label>
+                <input type="number" class="dir-rows" value="${rows}" oninput="renderDirectionGrid(this)">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>街名代號</label>
+                <input type="text" class="dir-code" value="${code}" oninput="renderDirectionGrid(this)">
+            </div>
+        </div>
+        <div class="dir-grid-preview" style="margin-top:10px;">
+            <div class="grid-canvas dir-grid-canvas"></div>
+        </div>
+    `;
+    
+    container.appendChild(item);
+    
+    // 渲染初始的网格
+    renderDirectionGrid(item.querySelector('.dir-cols'));
+    
+    // 如果有传入的grid数据，恢复单元格状态
+    if(directionData?.gridData) {
+        const gridCanvas = item.querySelector('.dir-grid-canvas');
+        Object.entries(directionData.gridData.cells || {}).forEach(([key, val]) => {
+            const [r,c] = key.split('-').map(Number);
+            const cell = gridCanvas.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+            if(cell) {
+                if(val == 'clean') cell.classList.add('filled');
+            }
+        });
+        // 把grid数据存在item的dataset里，方便保存的时候读取
+        item.dataset.gridData = JSON.stringify(directionData.gridData);
+    }
+}
+
+function removeDirectionItem(btn) {
+    const item = btn.closest('.direction-item');
+    item.remove();
+    updateTotalArea();
+}
+
+function updateTotalArea() {
+    // 實時更新總面積的邏輯，這裡暫不做前端顯示，保存時會自動計算
+}
+
+function renderDirectionGrid(input) {
+    const item = input.closest('.direction-item');
+    if(!item) return;
+    const cols = parseInt(item.querySelector('.dir-cols').value) || 6;
+    const rows = parseInt(item.querySelector('.dir-rows').value) || 1;
+    const streetCode = item.querySelector('.dir-code').value || '';
+    
+    const gridCanvas = item.querySelector('.dir-grid-canvas');
+    gridCanvas.innerHTML = '';
+    
+    // 列标签行
+    const colLabelRow = document.createElement('div');
+    colLabelRow.className = 'col-label-row';
+    for(let c=1; c<=cols; c++) {
+        const colLabel = document.createElement('div');
+        colLabel.className = 'col-label';
+        colLabel.innerText = streetCode ? `${streetCode}${c}` : c;
+        colLabelRow.appendChild(colLabel);
+    }
+    gridCanvas.appendChild(colLabelRow);
+    
+    // 行和单元格
+    for(let r=0; r<rows; r++) {
+        const gridRow = document.createElement('div');
+        gridRow.className = 'grid-row';
+        
+        // 行标签
+        const rowLabel = document.createElement('div');
+        rowLabel.className = 'floor-label';
+        rowLabel.innerText = `F${rows - r}`;
+        gridRow.appendChild(rowLabel);
+        
+        // 单元格
+        for(let c=0; c<cols; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.r = r;
+            cell.dataset.c = c;
+            
+            // 点击切换状态
+            cell.onclick = function() {
+                this.classList.toggle('filled');
+                // 保存单元格状态到item的dataset里
+                saveDirectionGridData(item);
+            };
+            
+            gridRow.appendChild(cell);
+        }
+        gridCanvas.appendChild(gridRow);
+    }
+    
+    // 保存初始的grid数据
+    saveDirectionGridData(item);
+}
+
+function saveDirectionGridData(item) {
+    const cols = parseInt(item.querySelector('.dir-cols').value) || 6;
+    const rows = parseInt(item.querySelector('.dir-rows').value) || 1;
+    const streetCode = item.querySelector('.dir-code').value || '';
+    
+    const cells = {};
+    item.querySelectorAll('.grid-cell').forEach(cell => {
+        const r = cell.dataset.r;
+        const c = cell.dataset.c;
+        if(cell.classList.contains('filled')) {
+            cells[`${r}-${c}`] = 'clean';
+        }
+    });
+    
+    const gridData = {
+        cols,
+        rows,
+        streetCode,
+        cells
+    };
+    
+    item.dataset.gridData = JSON.stringify(gridData);
 }
